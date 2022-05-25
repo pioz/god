@@ -73,13 +73,6 @@ commands:
 6. Reload systemd daemon with `systemctl --user daemon-reload`
 7. Enable the new service with `systemctl --user enable my_service_name1`
 
-God install on the remote server the main package using `go install`. If the
-package is located in a private repository, God allows the remote server to
-access the repository prepending in the remote
-[`~/.netrc`](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html)
-file the login information that you have specified on the God YAML configuration
-file (read `god -h` for more details).
-
 The systemd unit service file will be saved in
 `~/.config/systemd/user/my_service_name1.service` and its content is
 something like this:
@@ -108,6 +101,29 @@ that will run in the remote host
 
 ```
 systemctl --user start my_service_name1
+```
+
+If you want rollback and clean your server you can uninstall the service with
+`god uninstall my_service_name1`.
+
+### Install from private repository
+
+If your Go service package is located in a private repository, God allows the
+remote server to access the repository prepending in the remote
+[`~/.netrc`](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html)
+file the login information that you can specify on the God YAML configuration
+file (read `god -h` for more details). An example here:
+
+```yaml
+my_private_service:
+  user: pioz
+  host: 119.178.21.21
+  go_install: github.com/pioz/go_hello_world_server_private@latest
+  # Private repo access
+  go_private: github.com/pioz/go_hello_world_server_private
+  netrc_machine: github.com
+  netrc_login: githublogin@gmail.com
+  netrc_password: youRgithubAcce$$tok3n
 ```
 
 ### Manage multiple services at the same time
