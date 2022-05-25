@@ -128,8 +128,8 @@ my_private_service:
 
 ### Manage multiple services at the same time
 
-If you do not specify a service name all services defined in the YAML file will
-be taken into consideration, for example if you run `god restart` it will be
+If you do not specify a service name, all services defined in the YAML file will
+be taken into consideration, for example if you run `god restart` it will
 restart all services defined in the YAML file in parallel. 🤩
 
 This is really useful if your infrastructure is made by many microservices.
