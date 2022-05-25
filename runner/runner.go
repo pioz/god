@@ -9,6 +9,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"sync"
 
 	"github.com/pioz/god/sshcmd"
 	"gopkg.in/yaml.v3"
@@ -51,6 +52,7 @@ type Runner struct {
 	confFilePath string
 	conf         map[string]*Conf
 	services     map[string]Service
+	mu           sync.Mutex
 	output       chan message
 	quit         chan struct{}
 }
@@ -163,7 +165,9 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 		conf.WorkingDirectory = pwd
 	}
 	// Save cache
+	r.mu.Lock()
 	r.services[serviceName] = service
+	r.mu.Unlock()
 
 	return service, nil
 }
