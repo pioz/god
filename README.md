@@ -1,7 +1,7 @@
 # God - Go-daemons
 
 God (go-daemons) is a tool to deploy and manage daemons in the GO ecosystem on GNU/Linux machines
-using [Systemd](https://www.freedesktop.org/wiki/Software/systemd/).
+using [systemd](https://www.freedesktop.org/wiki/Software/systemd/).
 
 God installs your go binary in the remote machine (server) using `go install`,
 create the systemd unit file (.service file) and allows you to
@@ -66,7 +66,7 @@ authentication via plain password is not planned. Then perform this sequence of
 commands:
 
 1. Check if GO is installed on the remote host
-2. Check if Systemd is installed on the remote host
+2. Check if systemd is installed on the remote host
 3. Check if the user `pioz` is in the [lingering list](https://www.freedesktop.org/software/systemd/man/loginctl.html)
 4. Install the GO package `github.com/pioz/go_hello_world_server@latest` in `$GOBIN` (default `~/go/bin/`)
 5. Create the systemd unit service file in `~/.config/systemd/user/`
