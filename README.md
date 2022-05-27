@@ -3,7 +3,7 @@
 God (go-daemons) is a tool to deploy and manage daemons in the GO ecosystem on GNU/Linux machines
 using [systemd](https://www.freedesktop.org/wiki/Software/systemd/).
 
-![Devil Gopher](/gopher/devil_gopher.png | width=300)
+![Devil Gopher](/gopher/devil_gopher.png width=300)
 
 God installs your go binary in the remote machine (server) using `go install`,
 create the systemd unit file (.service file) and allows you to
