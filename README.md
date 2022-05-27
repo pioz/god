@@ -1,6 +1,6 @@
 # God - Go-daemons
 
-God (go-daemons) is a tool to deploy and manage daemons in the GO ecosystem on GNU/Linux machines
+God (go-daemons) is a tool to deploy and manage daemons in the Go ecosystem on GNU/Linux machines
 using [systemd](https://www.freedesktop.org/wiki/Software/systemd/).
 
 <img src="gopher/devil_gopher.png" width="300" alt="Devil Gopher" />
@@ -11,7 +11,7 @@ start/stop/restart the process.
 
 ## Use case
 
-I often write small micro-services or web-services in GO, and I need to deploy
+I often write small micro-services or web-services in Go, and I need to deploy
 the service on a server in an easy and fast way, without bothering! Usually I
 compile the executable for the server architecture, log in via SSH on the
 server, copy the binary, create the configuration file for the new systemd
@@ -21,8 +21,8 @@ And that's not all: when I make a change to my program, then I have to recompile
 it, log in via SSH on the server, copy the binary and restart the service. A
 real waste of time!
 
-So I decided to write God, a tool written in GO. With God I can quickly and
-easily deploy and manage one or more services written in GO comfortably from my
+So I decided to write God, a tool written in Go. With God I can quickly and
+easily deploy and manage one or more services written in Go comfortably from my
 laptop, without logging into the server via SSH using a simple
 [YAML](https://yaml.org/) configuration file.
 
@@ -67,10 +67,10 @@ God will try to connect via SSH to the server `119.178.21.21` with the user
 authentication via plain password is not planned. Then perform this sequence of
 commands:
 
-1. Check if GO is installed on the remote host
+1. Check if Go is installed on the remote host
 2. Check if systemd is installed on the remote host
 3. Check if the user `pioz` is in the [lingering list](https://www.freedesktop.org/software/systemd/man/loginctl.html)
-4. Install the GO package `github.com/pioz/go_hello_world_server@latest` in `$GOBIN` (default `~/go/bin/`)
+4. Install the Go package `github.com/pioz/go_hello_world_server@latest` in `$GOBIN` (default `~/go/bin/`)
 5. Create the systemd unit service file in `~/.config/systemd/user/`
 6. Reload systemd daemon with `systemctl --user daemon-reload`
 7. Enable the new service with `systemctl --user enable my_service_name1`
@@ -164,7 +164,7 @@ host                          Hostname to log in for executing commands on the r
 port                          Port to connect to on the remote host. (default 22)
 private_key_path              Local path of the private key used to authenticate on the remote host. (default
                               '~/.ssh/id_rsa')
-go_exec_path                  Remote path of the GO binary executable. (default '/usr/local/go/bin/go')
+go_exec_path                  Remote path of the Go binary executable. (default '/usr/local/go/bin/go')
 go_bin_directory              The directory where 'go install' will install the service executable. (default
                               '~/go/bin/')
 go_install                    Go package to install on the remote host. Package path must refer to main packages and
