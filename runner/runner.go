@@ -1,5 +1,5 @@
 // Package runner exposes the APIs used by God for deploy and manage services in
-// the GO ecosystem.
+// the Go ecosystem.
 package runner
 
 import (
