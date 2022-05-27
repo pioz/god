@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Service) CheckGo() error {
-	errorMessage := fmt.Sprintf("couldn't find the `go` executable. Please install `go` or set the executable path in `%s` file using the `go_executable_path` variable", s.runner.confFilePath)
+	errorMessage := fmt.Sprintf("couldn't find the `go` executable. Please install `go` or set the executable path in `%s` file using the `go_exec_path` variable", s.runner.confFilePath)
 	cmd := s.ParseCommand("{{.GoExecPath}} version")
 	return s.PrintExec(cmd, errorMessage)
 }
