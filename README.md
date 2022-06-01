@@ -178,7 +178,7 @@ netrc_password                Add in remote .netrc file the password or access t
 systemd_path                  Remote path of systemd binary executable. (default 'systemd')
 systemd_services_directory    Remote directory where to save user instance systemd unit service configuration file.
                               (default '~/.config/systemd/user/')
-systemd_linger_dir            Remote directory where to find the lingering user list. If lingering is enabled for a
+systemd_linger_directory      Remote directory where to find the lingering user list. If lingering is enabled for a
                               specific user, a user manager is spawned for the user at boot and kept around after
                               logouts. (default '/var/lib/systemd/linger/')
 exec_start                    Command with its arguments that are executed when this service is started.
