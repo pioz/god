@@ -1,3 +1,4 @@
 # God TODO list
 
-- Heartbeat
+- Command option to autocreate working directory
+- Config option to upload files

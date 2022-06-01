@@ -22,7 +22,7 @@ func (s *Service) CheckSystemd() error {
 }
 
 func (s *Service) CheckLingering() error {
-	cmd := s.ParseCommand("ls {{.SystemdLingerDir}}")
+	cmd := s.ParseCommand("ls {{.SystemdLingerDirectory}}")
 	s.runner.SendMessage(s.Name, cmd, MessaggeNormal)
 	output, err := s.Exec(cmd)
 	if err != nil {

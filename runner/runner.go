@@ -33,10 +33,10 @@ type Conf struct {
 
 	SystemdPath              string `yaml:"systemd_path"`
 	SystemdServicesDirectory string `yaml:"systemd_services_directory"`
-	SystemdLingerDir         string `yaml:"systemd_linger_dir"`
+	SystemdLingerDirectory   string `yaml:"systemd_linger_directory"`
 
 	ExecStart             string `yaml:"exec_start"`
-	WorkingDirectory      string `yaml:"working_dir"`
+	WorkingDirectory      string `yaml:"working_directory"`
 	Environment           string `yaml:"environment"`
 	LogPath               string `yaml:"log_path"`
 	RunAfterService       string `yaml:"run_after_service"`
@@ -151,8 +151,8 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 	if conf.SystemdServicesDirectory == "" {
 		conf.SystemdServicesDirectory = filepath.Join(pwd, ".config/systemd/user")
 	}
-	if conf.SystemdLingerDir == "" {
-		conf.SystemdLingerDir = "/var/lib/systemd/linger"
+	if conf.SystemdLingerDirectory == "" {
+		conf.SystemdLingerDirectory = "/var/lib/systemd/linger"
 	}
 	// Service conf
 	if conf.ExecStart == "" {
