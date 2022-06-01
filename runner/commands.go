@@ -38,6 +38,29 @@ func (s *Service) CheckLingering() error {
 	return nil
 }
 
+func (s *Service) CheckWorkingDir(createWorkingDirectory bool) error {
+	cmd := s.ParseCommand("test -e {{.WorkingDirectory}}")
+	s.runner.SendMessage(s.Name, cmd, MessaggeNormal)
+	_, err := s.Exec(cmd)
+	if err == nil {
+		s.runner.SendMessage(s.Name, "", MessaggeSuccess)
+		return nil
+	}
+	if !createWorkingDirectory {
+		s.runner.SendMessage(s.Name, fmt.Sprintf("WorkingDirectory '%s' does not exist on the remote host", s.Conf.WorkingDirectory), MessaggeError)
+		return err
+	}
+	cmd = s.ParseCommand("mkdir -p {{.WorkingDirectory}}")
+	s.runner.SendMessage(s.Name, cmd, MessaggeNormal)
+	output, err := s.Exec(cmd)
+	if err != nil {
+		s.runner.SendMessage(s.Name, err.Error(), MessaggeError)
+		return err
+	}
+	s.runner.SendMessage(s.Name, output, MessaggeSuccess)
+	return nil
+}
+
 func (s *Service) AuthPrivateRepo() error {
 	if s.Conf.GoPrivate != "" {
 		s.runner.SendMessage(s.Name, "GO_PRIVATE found: edit .netrc file", MessaggeNormal)
@@ -151,7 +174,7 @@ func (s *Service) StatusService() error {
 	return s.PrintExec(fmt.Sprintf("systemctl --user status %s", s.Name), "")
 }
 
-func (s *Service) Install() error {
+func (s *Service) Install(createWorkingDirectory bool) error {
 	if err := s.CheckGo(); err != nil {
 		return err
 	}
@@ -159,6 +182,9 @@ func (s *Service) Install() error {
 		return err
 	}
 	if err := s.CheckLingering(); err != nil {
+		return err
+	}
+	if err := s.CheckWorkingDir(createWorkingDirectory); err != nil {
 		return err
 	}
 	if err := s.AuthPrivateRepo(); err != nil {

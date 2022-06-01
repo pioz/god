@@ -81,9 +81,10 @@ func init() {
 }
 
 func main() {
-	var help, quiet bool
+	var createWorkingDirectory, help, quiet bool
 	var confFilePath string
 	flag.StringVar(&confFilePath, "f", ".god.yml", "Configuration YAML file path")
+	flag.BoolVar(&createWorkingDirectory, "c", false, "Create the service working directory if not exists")
 	flag.BoolVar(&quiet, "q", false, "Disable printing")
 	flag.BoolVar(&help, "h", false, "Print this help")
 	flag.Parse()
@@ -126,7 +127,7 @@ func main() {
 					if err != nil {
 						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
 					} else {
-						s.Install()
+						s.Install(createWorkingDirectory)
 					}
 				}(serviceName)
 			}
