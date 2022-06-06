@@ -136,15 +136,33 @@ restart all services defined in the YAML file in parallel. 🤩
 
 This is really useful if your infrastructure is made by many microservices.
 
+### Copy files
+
+If you need to upload files to the remote working directory you can use the
+configuration options `copy_files` in the YAML conf file. For example you can
+upload a `.env` file needed by your service.
+
+```yaml
+my_service_name:
+  user: pioz
+  host: 119.178.21.21
+  go_install: github.com/pioz/go_hello_world_server@latest
+  copy_files:
+    - .env
+    - WARNING.txt
+    - /home/pioz/icons/
+```
+
 ### -help
 
 ```
 god -h
 Usage: god [OPTIONS...] {COMMAND} ...
+  -c	Creates the remote service working directory if not exists. With uninstall command, removes log files and the remote working directory if empty.
   -f string
-    	Configuration YAML file path (default ".god.yml")
-  -h	Print this help
-  -q	Disable printing
+      Configuration YAML file path. (default ".god.yml")
+  -h	Print this help.
+  -q	Disable printing.
 
 Commands:
 After each command you can specify one or more services. If you do not specify any, all services in the YAML
@@ -194,6 +212,7 @@ start_limit_burst             Configure service start rate limiting. Services wh
 start_limit_interval_sec      Configure the checking interval used by 'start_limit_burst'.
 restart_sec                   Configures the time to sleep before restarting a service. Takes a unit-less value in
                               seconds.
+copy_files                    [Array] Copy files to the remote working directory.
 ignore                        If a command is called without any service name, all services in the YAML configuration
                               file will be selected, except those with ignore set to true. (default false)
 ```

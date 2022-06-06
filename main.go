@@ -65,6 +65,7 @@ func init() {
 			{"start_limit_burst", "Configure service start rate limiting. Services which are started more than burst times within an interval time interval are not permitted to start any more. Use 'start_limit_interval_sec' to configure the checking interval."},
 			{"start_limit_interval_sec", "Configure the checking interval used by 'start_limit_burst'."},
 			{"restart_sec", "Configures the time to sleep before restarting a service. Takes a unit-less value in seconds."},
+			{"copy_files", "[Array] Copy files to the remote working directory."},
 			{"ignore", "If a command is called without any service name, all services in the YAML configuration file will be selected, except those with ignore set to true. (default false)"},
 		}
 		for _, option := range confOptions {
@@ -83,10 +84,10 @@ func init() {
 func main() {
 	var createWorkingDirectory, help, quiet bool
 	var confFilePath string
-	flag.StringVar(&confFilePath, "f", ".god.yml", "Configuration YAML file path")
-	flag.BoolVar(&createWorkingDirectory, "c", false, "Create the service working directory if not exists")
-	flag.BoolVar(&quiet, "q", false, "Disable printing")
-	flag.BoolVar(&help, "h", false, "Print this help")
+	flag.StringVar(&confFilePath, "f", ".god.yml", "Configuration YAML file path.")
+	flag.BoolVar(&createWorkingDirectory, "c", false, "Creates the remote service working directory if not exists. With uninstall command, removes log files and the remote working directory if empty.")
+	flag.BoolVar(&quiet, "q", false, "Disable printing.")
+	flag.BoolVar(&help, "h", false, "Print this help.")
 	flag.Parse()
 	if help {
 		flag.Usage()
@@ -141,7 +142,7 @@ func main() {
 					if err != nil {
 						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
 					} else {
-						s.Uninstall()
+						s.Uninstall(createWorkingDirectory)
 					}
 				}(serviceName)
 			}

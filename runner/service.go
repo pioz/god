@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/pioz/god/sshcmd"
-	"github.com/pkg/sftp"
 )
 
 // Service represents a service that will be installed and launched on the
@@ -19,12 +20,19 @@ type Service struct {
 	Name string
 	// Configuration under the key in the configuration YAML file
 	Conf *Conf
-	// SSH client
-	Client *sshcmd.Client
-	runner *Runner
+
+	client        *sshcmd.Client
+	runner        *Runner
+	remoteHomeDir string
 }
 
-// PrintExec run cmd on the remote host and send the output on the runner
+// Exec runs cmd on the remote host.
+func (service *Service) Exec(cmd string) (string, error) {
+	output, err := service.client.Exec(cmd)
+	return strings.TrimSuffix(output, "\n"), err
+}
+
+// PrintExec runs cmd on the remote host and sends the output on the runner
 // channel.
 func (service *Service) PrintExec(cmd, errorMessage string) error {
 	service.runner.SendMessage(service.Name, cmd, MessaggeNormal)
@@ -43,13 +51,7 @@ func (service *Service) PrintExec(cmd, errorMessage string) error {
 	}
 }
 
-// Exec run cmd on the remote host.
-func (service *Service) Exec(cmd string) (string, error) {
-	output, err := service.Client.Exec(cmd)
-	return strings.TrimSuffix(output, "\n"), err
-}
-
-// ParseCommand parse the cmd string replacing the variables with those present
+// ParseCommand parses the cmd string replacing the variables with those present
 // in the configuration.
 func (service *Service) ParseCommand(cmd string) string {
 	tmpl, err := template.New("command").Parse(cmd)
@@ -61,7 +63,83 @@ func (service *Service) ParseCommand(cmd string) string {
 	return parsedCommand.String()
 }
 
-// GenerateServiceFile generate the systemd unit service file using the service
+// CopyFile copies the local file on the remote host to the remote
+// workingDirectory. If the local file is a directory, create the directory on
+// the remote host and recursively copy all files inside.
+func (service *Service) CopyFile(path, workingDirectory string) error {
+	err := service.client.ConnectSftpClient()
+	if err != nil {
+		return err
+	}
+
+	return service.client.WalkDir(path, workingDirectory, func(localPath, remotePath string, info fs.DirEntry, e error) error {
+		if info.IsDir() {
+			return service.client.SftClient.MkdirAll(remotePath)
+		}
+		srcFile, err := os.Open(localPath)
+		if err != nil {
+			return err
+		}
+
+		dstFile, err := service.client.SftClient.Create(remotePath)
+		if err != nil {
+			return err
+		}
+		defer dstFile.Close()
+
+		_, err = dstFile.ReadFrom(srcFile)
+		return err
+	})
+}
+
+// DeleteFile deletes the file on the remote host relative to the remote
+// workingDirectory.
+func (service *Service) DeleteFile(path, workingDirectory string) error {
+	var directories []string
+	err := service.client.ConnectSftpClient()
+	if err != nil {
+		return err
+	}
+	err = service.client.WalkDir(path, workingDirectory, func(localPath, remotePath string, info fs.DirEntry, e error) error {
+		if info.IsDir() {
+			directories = append(directories, remotePath)
+		} else {
+			service.client.SftClient.Remove(remotePath)
+		}
+		return nil
+	})
+	for i := len(directories) - 1; i >= 0; i-- {
+		service.client.SftClient.RemoveDirectory(directories[i])
+	}
+	return err
+}
+
+// CopyUnitServiceFile copies the systemd unit service file on the remote host.
+func (service *Service) CopyUnitServiceFile() error {
+	err := service.client.ConnectSftpClient()
+	if err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+	service.GenerateServiceFile(&buf)
+
+	// Create the destination file
+	filename := filepath.Join(service.Conf.SystemdServicesDirectory, fmt.Sprintf("%s.service", service.Name))
+	dstFile, err := service.client.SftClient.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	// write to file
+	if _, err := dstFile.ReadFrom(&buf); err != nil {
+		return err
+	}
+	return nil
+}
+
+// GenerateServiceFile generates the systemd unit service file using the service
 // configuration.
 func (service *Service) GenerateServiceFile(buf io.Writer) {
 	tmpl, err := template.New("serviceFile").Parse(fmt.Sprintf(serviceTemplate, service.Name))
@@ -71,27 +149,13 @@ func (service *Service) GenerateServiceFile(buf io.Writer) {
 	tmpl.Execute(buf, service.Conf)
 }
 
-// CopyFile copy the systemd unit service file on the remote host.
-func (service *Service) CopyFile(buf io.Reader) error {
-	sftp, err := sftp.NewClient(service.Client.SshClient)
+// DeleteDirIfEmpty deletes remote directory only if empty.
+func (service *Service) DeleteDirIfEmpty(dirPath string) error {
+	err := service.client.ConnectSftpClient()
 	if err != nil {
 		return err
 	}
-	defer sftp.Close()
-
-	// Create the destination file
-	filename := filepath.Join(service.Conf.SystemdServicesDirectory, fmt.Sprintf("%s.service", service.Name))
-	dstFile, err := sftp.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-
-	// write to file
-	if _, err := dstFile.ReadFrom(buf); err != nil {
-		return err
-	}
-	return nil
+	return service.client.SftClient.Remove(dirPath)
 }
 
 const serviceTemplate = `[Unit]

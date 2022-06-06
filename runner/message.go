@@ -16,6 +16,8 @@ const (
 	MessaggeSuccess // 1 << 1 which is 00000010
 	// Error message (red)
 	MessaggeError // 1 << 2 which is 00000100
+	// Warning message (yellow)
+	MessaggeWarning // 1 << 3 which is 00001000
 )
 
 type message struct {
@@ -25,10 +27,12 @@ type message struct {
 }
 
 const (
-	green1 = "#22c55e"
-	green2 = "#059669"
-	red1   = "#ef4444"
-	red2   = "#dc2626"
+	green1  = "#22c55e"
+	green2  = "#059669"
+	red1    = "#ef4444"
+	red2    = "#dc2626"
+	yellow1 = "#f9c10b"
+	yellow2 = "#fcc203"
 )
 
 var styles = map[MessageStatus]map[string]lipgloss.Style{
@@ -46,6 +50,11 @@ var styles = map[MessageStatus]map[string]lipgloss.Style{
 		"normal": lipgloss.NewStyle().Foreground(lipgloss.Color(red2)),
 		"bold":   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(red1)),
 		"symbol": lipgloss.NewStyle().SetString("×").Foreground(lipgloss.Color(red1)),
+	},
+	MessaggeWarning: {
+		"normal": lipgloss.NewStyle().Foreground(lipgloss.Color(yellow2)),
+		"bold":   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(yellow1)),
+		"symbol": lipgloss.NewStyle().SetString("⚠").Foreground(lipgloss.Color(yellow1)),
 	},
 }
 

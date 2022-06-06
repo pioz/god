@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pkg/sftp"
 	"golang.org/x/exp/slices"
 )
 
@@ -47,7 +48,7 @@ func (s *Service) CheckWorkingDir(createWorkingDirectory bool) error {
 		return nil
 	}
 	if !createWorkingDirectory {
-		s.runner.SendMessage(s.Name, fmt.Sprintf("WorkingDirectory '%s' does not exist on the remote host", s.Conf.WorkingDirectory), MessaggeError)
+		s.runner.SendMessage(s.Name, fmt.Sprintf("Service working directory '%s' does not exist on the remote host", s.Conf.WorkingDirectory), MessaggeError)
 		return err
 	}
 	cmd = s.ParseCommand("mkdir -p {{.WorkingDirectory}}")
@@ -117,16 +118,73 @@ func (s *Service) DeleteExecutable() error {
 }
 
 func (s *Service) CreateServiceFile() error {
-	var buf bytes.Buffer
-	s.GenerateServiceFile(&buf)
 	message := fmt.Sprintf("Copy service file in `%s`", s.Conf.SystemdServicesDirectory)
 	s.runner.SendMessage(s.Name, message, MessaggeNormal)
-	err := s.CopyFile(&buf)
+	err := s.CopyUnitServiceFile()
 	if err != nil {
 		s.runner.SendMessage(s.Name, err.Error(), MessaggeError)
 		return err
 	}
 	s.runner.SendMessage(s.Name, "Copied", MessaggeSuccess)
+	return nil
+}
+
+func (s *Service) CopyFiles() error {
+	if len(s.Conf.CopyFiles) > 0 {
+		s.runner.SendMessage(s.Name, "Copying files", MessaggeNormal)
+		for _, path := range s.Conf.CopyFiles {
+			err := s.CopyFile(path, s.Conf.WorkingDirectory)
+			if err != nil {
+				errorMessage := fmt.Sprintf("cannot copy file '%s': %s", path, err)
+				s.runner.SendMessage(s.Name, errorMessage, MessaggeError)
+				return err
+			}
+		}
+		s.runner.SendMessage(s.Name, "All files copied", MessaggeSuccess)
+	}
+	return nil
+}
+
+func (s *Service) DeleteFiles(removeWorkingDirectory bool) error {
+	if len(s.Conf.CopyFiles) > 0 {
+		s.runner.SendMessage(s.Name, "Deleting files", MessaggeNormal)
+		for _, path := range s.Conf.CopyFiles {
+			err := s.DeleteFile(path, s.Conf.WorkingDirectory)
+			if err != nil {
+				errorMessage := fmt.Sprintf("cannot delete file '%s': %s", path, err)
+				s.runner.SendMessage(s.Name, errorMessage, MessaggeWarning)
+			}
+		}
+		s.runner.SendMessage(s.Name, "All files deleted", MessaggeSuccess)
+	}
+	if removeWorkingDirectory {
+		if s.Conf.LogPath != "" {
+			s.runner.SendMessage(s.Name, fmt.Sprintf("Deleting log file '%s'", s.Conf.LogPath), MessaggeNormal)
+			err := s.client.ConnectSftpClient()
+			if err != nil {
+				s.runner.SendMessage(s.Name, fmt.Sprintf("Cannot delete log file '%s': %s", s.Conf.LogPath, err.Error()), MessaggeError)
+			}
+			err = s.client.SftClient.Remove(s.Conf.LogPath)
+			if err != nil {
+				s.runner.SendMessage(s.Name, fmt.Sprintf("Cannot delete log file '%s': %s", s.Conf.LogPath, err.Error()), MessaggeError)
+			} else {
+				s.runner.SendMessage(s.Name, "Deleted", MessaggeSuccess)
+			}
+		}
+		if s.Conf.WorkingDirectory != s.remoteHomeDir {
+			s.runner.SendMessage(s.Name, fmt.Sprintf("Deleting service working directory '%s'", s.Conf.WorkingDirectory), MessaggeNormal)
+			err := s.DeleteDirIfEmpty(s.Conf.WorkingDirectory)
+			if err, ok := err.(*sftp.StatusError); ok {
+				switch err.Code {
+				case 4: // sshFxFailure
+					s.runner.SendMessage(s.Name, fmt.Sprintf("Cannot delete service working directory '%s': directory is not empty", s.Conf.WorkingDirectory), MessaggeError)
+				default:
+					s.runner.SendMessage(s.Name, fmt.Sprintf("Cannot delete service working directory '%s': %s", s.Conf.WorkingDirectory, err.Error()), MessaggeError)
+				}
+			}
+			s.runner.SendMessage(s.Name, "Deleted", MessaggeSuccess)
+		}
+	}
 	return nil
 }
 
@@ -193,6 +251,9 @@ func (s *Service) Install(createWorkingDirectory bool) error {
 	if err := s.InstallExecutable(); err != nil {
 		return err
 	}
+	if err := s.CopyFiles(); err != nil {
+		return err
+	}
 	if err := s.CreateServiceFile(); err != nil {
 		return err
 	}
@@ -205,11 +266,12 @@ func (s *Service) Install(createWorkingDirectory bool) error {
 	return nil
 }
 
-func (s *Service) Uninstall() {
+func (s *Service) Uninstall(removeWorkingDirectory bool) {
 	s.StopService()
 	s.DisableService()
 	s.DeleteServiceFile()
 	s.ReloadDaemon()
 	s.ResetFailedServices()
 	s.DeleteExecutable()
+	s.DeleteFiles(removeWorkingDirectory)
 }

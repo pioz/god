@@ -44,6 +44,8 @@ type Conf struct {
 	StartLimitIntervalSec int    `yaml:"start_limit_interval_sec"`
 	RestartSec            int    `yaml:"restart_sec"`
 
+	CopyFiles []string `yaml:"copy_files"`
+
 	Ignore bool `yaml:"ignore"`
 }
 
@@ -57,7 +59,7 @@ type Runner struct {
 	quit         chan struct{}
 }
 
-// MakeRunner load the configuration from confFilePath and returns an
+// MakeRunner loads the configuration from confFilePath and returns an
 // initialized Runner.
 func MakeRunner(confFilePath string) (*Runner, error) {
 	runner := &Runner{
@@ -86,7 +88,7 @@ func (r *Runner) GetServiceNames() []string {
 	return names
 }
 
-// MakeService make a new Service using the configuration under serviceName key
+// MakeService makes a new Service using the configuration under serviceName key
 // in the configuration file.
 func (r *Runner) MakeService(serviceName string) (Service, error) {
 	// Fetch service from cache
@@ -130,12 +132,13 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 		return Service{}, err
 	}
 	// Create the service
-	service := Service{Name: serviceName, Conf: conf, Client: client, runner: r}
+	service := Service{Name: serviceName, Conf: conf, client: client, runner: r}
 	// Find remote host working directory
 	pwd, err := service.Exec("pwd")
 	if err != nil {
 		return Service{}, err
 	}
+	service.remoteHomeDir = pwd
 	// Set default configuration for missing values
 	// Go conf
 	if conf.GoExecPath == "" {
@@ -172,7 +175,7 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 	return service, nil
 }
 
-// StartPrintOutput start a go routine that read messages from runner channel
+// StartPrintOutput starts a go routine that read messages from runner channel
 // and prints them.
 func (runner *Runner) StartPrintOutput(services []string) {
 	width := 0
@@ -198,7 +201,7 @@ func (runner *Runner) StopPrintOutput() {
 	runner.quit <- struct{}{}
 }
 
-// SendMessage write a message in the runner channel that can be captured and
+// SendMessage writes a message in the runner channel that can be captured and
 // printed by the go routine started with StartPrintOutput.
 func (runner *Runner) SendMessage(serviceName, text string, status MessageStatus) {
 	runner.output <- message{
