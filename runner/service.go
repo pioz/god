@@ -35,7 +35,7 @@ func (service *Service) Exec(cmd string) (string, error) {
 // PrintExec runs cmd on the remote host and sends the output on the runner
 // channel.
 func (service *Service) PrintExec(cmd, errorMessage string) error {
-	service.runner.SendMessage(service.Name, cmd, MessaggeNormal)
+	service.runner.SendMessage(service.Name, cmd, MessageNormal)
 	output, err := service.Exec(cmd)
 	if err != nil {
 		if errorMessage == "" {
@@ -43,10 +43,10 @@ func (service *Service) PrintExec(cmd, errorMessage string) error {
 		} else {
 			errorMessage = fmt.Sprintf("%s: %s", errorMessage, output)
 		}
-		service.runner.SendMessage(service.Name, errorMessage, MessaggeError)
+		service.runner.SendMessage(service.Name, errorMessage, MessageError)
 		return err
 	} else {
-		service.runner.SendMessage(service.Name, output, MessaggeSuccess)
+		service.runner.SendMessage(service.Name, output, MessageSuccess)
 		return nil
 	}
 }

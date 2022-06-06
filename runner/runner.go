@@ -187,7 +187,7 @@ func (runner *Runner) StartPrintOutput(services []string) {
 	for {
 		select {
 		case message := <-runner.output:
-			if !runner.QuietMode || message.status == MessaggeError {
+			if !runner.QuietMode || message.status == MessageError {
 				message.print(width)
 			}
 		case <-runner.quit:

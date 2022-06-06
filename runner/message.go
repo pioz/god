@@ -11,13 +11,13 @@ type MessageStatus uint8
 
 const (
 	// Normal message (uncolored)
-	MessaggeNormal MessageStatus = 1 << iota // 1 << 0 which is 00000001
+	MessageNormal MessageStatus = 1 << iota // 1 << 0 which is 00000001
 	// Success message (green)
-	MessaggeSuccess // 1 << 1 which is 00000010
+	MessageSuccess // 1 << 1 which is 00000010
 	// Error message (red)
-	MessaggeError // 1 << 2 which is 00000100
+	MessageError // 1 << 2 which is 00000100
 	// Warning message (yellow)
-	MessaggeWarning // 1 << 3 which is 00001000
+	MessageWarning // 1 << 3 which is 00001000
 )
 
 type message struct {
@@ -36,22 +36,22 @@ const (
 )
 
 var styles = map[MessageStatus]map[string]lipgloss.Style{
-	MessaggeNormal: {
+	MessageNormal: {
 		"normal": lipgloss.NewStyle(),
 		"bold":   lipgloss.NewStyle().Bold(true),
 		"symbol": lipgloss.NewStyle().SetString("→"),
 	},
-	MessaggeSuccess: {
+	MessageSuccess: {
 		"normal": lipgloss.NewStyle().Foreground(lipgloss.Color(green2)),
 		"bold":   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(green1)),
 		"symbol": lipgloss.NewStyle().SetString("✓").Foreground(lipgloss.Color(green1)),
 	},
-	MessaggeError: {
+	MessageError: {
 		"normal": lipgloss.NewStyle().Foreground(lipgloss.Color(red2)),
 		"bold":   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(red1)),
 		"symbol": lipgloss.NewStyle().SetString("×").Foreground(lipgloss.Color(red1)),
 	},
-	MessaggeWarning: {
+	MessageWarning: {
 		"normal": lipgloss.NewStyle().Foreground(lipgloss.Color(yellow2)),
 		"bold":   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(yellow1)),
 		"symbol": lipgloss.NewStyle().SetString("⚠").Foreground(lipgloss.Color(yellow1)),
@@ -69,7 +69,7 @@ func (m *message) print(width int) {
 	if width != 0 {
 		width += 3 // add padding
 	}
-	if m.text == "" && m.status == MessaggeSuccess {
+	if m.text == "" && m.status == MessageSuccess {
 		m.text = "ok"
 	}
 	fmt.Println(lipgloss.JoinHorizontal(

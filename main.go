@@ -126,7 +126,7 @@ func main() {
 					defer wg.Done()
 					s, err := r.MakeService(serviceName)
 					if err != nil {
-						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
+						r.SendMessage(serviceName, err.Error(), runner.MessageError)
 					} else {
 						s.Install(createWorkingDirectory)
 					}
@@ -140,7 +140,7 @@ func main() {
 					defer wg.Done()
 					s, err := r.MakeService(serviceName)
 					if err != nil {
-						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
+						r.SendMessage(serviceName, err.Error(), runner.MessageError)
 					} else {
 						s.Uninstall(createWorkingDirectory)
 					}
@@ -154,7 +154,7 @@ func main() {
 					defer wg.Done()
 					s, err := r.MakeService(serviceName)
 					if err != nil {
-						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
+						r.SendMessage(serviceName, err.Error(), runner.MessageError)
 					} else {
 						s.StartService()
 					}
@@ -168,7 +168,7 @@ func main() {
 					defer wg.Done()
 					s, err := r.MakeService(serviceName)
 					if err != nil {
-						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
+						r.SendMessage(serviceName, err.Error(), runner.MessageError)
 					} else {
 						s.StopService()
 					}
@@ -182,7 +182,7 @@ func main() {
 					defer wg.Done()
 					s, err := r.MakeService(serviceName)
 					if err != nil {
-						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
+						r.SendMessage(serviceName, err.Error(), runner.MessageError)
 					} else {
 						s.RestartService()
 					}
@@ -196,7 +196,7 @@ func main() {
 					defer wg.Done()
 					s, err := r.MakeService(serviceName)
 					if err != nil {
-						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
+						r.SendMessage(serviceName, err.Error(), runner.MessageError)
 					} else {
 						s.StatusService()
 					}
@@ -210,7 +210,7 @@ func main() {
 					defer wg.Done()
 					s, err := r.MakeService(serviceName)
 					if err != nil {
-						r.SendMessage(serviceName, err.Error(), runner.MessaggeError)
+						r.SendMessage(serviceName, err.Error(), runner.MessageError)
 					} else {
 						s.ShowServiceFile()
 					}
