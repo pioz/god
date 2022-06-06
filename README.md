@@ -160,7 +160,7 @@ god -h
 Usage: god [OPTIONS...] {COMMAND} ...
   -c	Creates the remote service working directory if not exists. With uninstall command, removes log files and the remote working directory if empty.
   -f string
-      Configuration YAML file path. (default ".god.yml")
+    	Configuration YAML file path. (default ".god.yml")
   -h	Print this help.
   -q	Disable printing.
 
