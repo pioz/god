@@ -95,11 +95,14 @@ func main() {
 		os.Exit(0)
 	}
 
-	command := flag.Args()[0]
-	services := flag.Args()[1:]
+	args := flag.Args()
+	if len(args) == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
 
+	command, services := args[0], args[1:]
 	if !slices.Contains(availableCommands, command) {
-		fmt.Println(command)
 		flag.Usage()
 		os.Exit(1)
 	}
