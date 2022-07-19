@@ -8,7 +8,10 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"reflect"
 	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/pioz/god/sshcmd"
@@ -226,7 +229,34 @@ func readConf(filename string) (map[string]*Conf, error) {
 		return nil, err
 	}
 
+	loadConfFromEnv(conf)
+
 	return conf, nil
+}
+
+func loadConfFromEnv(conf map[string]*Conf) {
+	for serviceName, value := range conf {
+		reflectValue := reflect.ValueOf(value).Elem()
+		for i := 0; i < reflectValue.NumField(); i++ {
+			fieldReflectType := reflectValue.Type().Field(i)
+			yamlTagValue := fieldReflectType.Tag.Get("yaml")
+			if yamlTagValue != "" {
+				envValue := os.Getenv(fmt.Sprintf("%s_%s", serviceNameToEnvName(serviceName), strings.ToUpper(yamlTagValue)))
+				if envValue != "" {
+					fieldValue := reflectValue.Field(i)
+					switch fieldValue.Type().Name() {
+					case "int":
+						i, err := strconv.Atoi(envValue)
+						if err == nil {
+							fieldValue.Set(reflect.ValueOf(i))
+						}
+					case "string":
+						fieldValue.Set(reflect.ValueOf(envValue))
+					}
+				}
+			}
+		}
+	}
 }
 
 func (r *Runner) validateConf(conf *Conf) error {
@@ -247,4 +277,26 @@ func getExec(packageName string) string {
 		return match[1]
 	}
 	return ""
+}
+
+func serviceNameToEnvName(serviceName string) string {
+	if len(serviceName) == 0 {
+		return ""
+	}
+	trim := func(r rune) rune {
+		switch {
+		case r >= 'A' && r <= 'Z':
+			return r
+		case r >= 'a' && r <= 'z':
+			return r
+		case r >= '0' && r <= '9':
+			return r
+		}
+		return '_'
+	}
+	result := strings.ToUpper(strings.Map(trim, serviceName))
+	if result[0] >= '0' && result[0] <= '9' {
+		result = "_" + result
+	}
+	return result
 }

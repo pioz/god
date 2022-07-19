@@ -128,6 +128,25 @@ my_private_service:
   netrc_password: youRgithubAcce$$tok3n
 ```
 
+### Override YAML configuration options with env variables
+
+All configuration options that you can specify in the `.god.yml` file can be
+overridden with environment variables in the form
+`<SERVICE_NAME>_<OPTION_NAME>`. For example, the option `netrc_password` can be
+overridden with the environment variable `MY_PRIVATE_SERVICE_NETRC_PASSWORD`.
+This is really useful if you want to avoid storing sensitive data in the
+`.god.yml` file.
+
+So you can install your private service with this command:
+
+```
+MY_PRIVATE_SERVICE_NETRC_PASSWORD=youRgithubAcce$$tok3n god install
+```
+
+Notice that God uses this function to convert the service name in the
+environment variable. So all characters not in `[A-Za-z0-9_]` will be replaced
+by an underscore.
+
 ### Manage multiple services at the same time
 
 If you do not specify a service name, all services defined in the YAML file will
@@ -153,7 +172,7 @@ my_service_name:
     - /home/pioz/icons/
 ```
 
-### -help
+### Help
 
 ```
 god -h
@@ -215,6 +234,10 @@ restart_sec                   Configures the time to sleep before restarting a s
 copy_files                    [Array] Copy files to the remote working directory.
 ignore                        If a command is called without any service name, all services in the YAML configuration
                               file will be selected, except those with ignore set to true. (default false)
+
+All previous configuration options can be overridden with environment variables in the form
+<SERVICE_NAME>_<OPTION_NAME>. For example, the option netrc_password can be overridden with the environment variable
+MY_SERVICE_NAME_NETRC_PASSWORD.
 ```
 
 ## Contributing

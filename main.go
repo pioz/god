@@ -78,6 +78,7 @@ func init() {
 				),
 			)
 		}
+		fmt.Fprintln(flag.CommandLine.Output(), lipgloss.NewStyle().Width(120).Render("\nAll previous configuration options can be overridden with environment variables in the form <SERVICE_NAME>_<OPTION_NAME>. For example, the option netrc_password can be overridden with the environment variable MY_SERVICE_NAME_NETRC_PASSWORD."))
 	}
 }
 
