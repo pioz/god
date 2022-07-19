@@ -143,9 +143,10 @@ So you can install your private service with this command:
 MY_PRIVATE_SERVICE_NETRC_PASSWORD=youRgithubAcce$$tok3n god install
 ```
 
-Notice that God uses this function to convert the service name in the
-environment variable. So all characters not in `[A-Za-z0-9_]` will be replaced
-by an underscore.
+Notice that God uses [this
+function](https://github.com/pioz/god/blob/c6d5e174596d584d348f4c74b69086c13533a01f/runner/runner.go#L282)
+to convert the service name in the environment variable. So all characters not
+in `[A-Za-z0-9_]` will be replaced by an underscore.
 
 ### Manage multiple services at the same time
 
