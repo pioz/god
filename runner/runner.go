@@ -106,13 +106,11 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 		err := fmt.Errorf("configuration for service `%s` was not found. Please add service configuration in `%s` file", serviceName, r.confFilePath)
 		return Service{}, err
 	}
-
 	// Validate configuration
 	err := r.validateConf(conf)
 	if err != nil {
 		return Service{}, err
 	}
-
 	// Set SSH connection default configuration for missing values
 	if conf.User == "" {
 		currentUser, err := user.Current()
@@ -126,39 +124,32 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 	if conf.PrivateKeyPath == "" {
 		conf.PrivateKeyPath = filepath.Join(os.Getenv("HOME"), "/.ssh/id_rsa")
 	}
-
 	// Create SSH client
 	client, err := sshcmd.MakeClient(conf.User, conf.Host, conf.Port, conf.PrivateKeyPath)
 	if err != nil {
 		return Service{}, err
 	}
-
 	// Connect the client
 	err = client.Connect()
 	if err != nil {
 		return Service{}, err
 	}
-
 	// Create the service
 	service := Service{Name: serviceName, Conf: conf, client: client, runner: r}
-
 	// Find remote host working directory
 	pwd, err := service.Exec("pwd")
 	if err != nil {
 		return Service{}, err
 	}
 	service.remoteHomeDir = pwd
-
 	// Set default configuration for missing values
-
 	// Go conf
-	if conf.GoBinDirectory == "" {
-		conf.GoBinDirectory = os.Getenv("GOBIN")
-	}
 	if conf.GoExecPath == "" {
-		conf.GoExecPath = filepath.Join(conf.GoBinDirectory, "go")
+		conf.GoExecPath = "/usr/local/go/bin/go"
 	}
-
+	if conf.GoBinDirectory == "" {
+		conf.GoBinDirectory = filepath.Join(pwd, "go/bin")
+	}
 	// Systemd conf
 	if conf.SystemdPath == "" {
 		conf.SystemdPath = "systemd"
@@ -169,7 +160,6 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 	if conf.SystemdLingerDirectory == "" {
 		conf.SystemdLingerDirectory = "/var/lib/systemd/linger"
 	}
-
 	// Service conf
 	if conf.ExecStart == "" {
 		exec := getExec(conf.GoInstall)
@@ -275,9 +265,6 @@ func (r *Runner) validateConf(conf *Conf) error {
 	}
 	if conf.GoInstall == "" {
 		return fmt.Errorf("required configuration `go_install` value is missing: please add `go_install: <package>` in `%s` file", r.confFilePath)
-	}
-	if conf.GoBinDirectory == "" {
-		return fmt.Errorf("$GOBIN environment variable is not set on the remote host: please set the $GOBIN env variable on the remote host or add `go_bin_directory: <path>` in `%s` file", r.confFilePath)
 	}
 	return nil
 }
