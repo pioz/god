@@ -202,9 +202,9 @@ host                          Hostname to log in for executing commands on the r
 port                          Port to connect to on the remote host. (default 22)
 private_key_path              Local path of the private key used to authenticate on the remote host. (default
                               '~/.ssh/id_rsa')
-go_exec_path                  Remote path of the Go binary executable. (default '/usr/local/go/bin/go')
+go_exec_path                  Remote path of the Go binary executable. (default '$GOBIN/go')
 go_bin_directory              The directory where 'go install' will install the service executable. (default
-                              '~/go/bin/')
+                              '$GOBIN')
 go_install                    Go package to install on the remote host. Package path must refer to main packages and
                               must have the version suffix, ex: @latest. (required)
 go_private                    Set GOPRIVATE environment variable to be used when run 'go install' to install from
