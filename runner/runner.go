@@ -168,6 +168,18 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 		return Service{}, fmt.Errorf("$GOBIN environment variable is not set on the remote host: please set the $GOBIN env variable on the remote host or add `go_bin_directory: <path>` in `%s` file", r.confFilePath)
 	}
 	if conf.GoExecPath == "" {
+		conf.GoExecPath, err = service.Exec("which go")
+		if err != nil {
+			conf.GoExecPath = ""
+		}
+	}
+	if conf.GoExecPath == "" {
+		conf.GoExecPath, err = service.Exec("mise exec -- which go")
+		if err != nil {
+			conf.GoExecPath = ""
+		}
+	}
+	if conf.GoExecPath == "" {
 		conf.GoExecPath = filepath.Join(conf.GoBinDirectory, "go")
 	}
 
