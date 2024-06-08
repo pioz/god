@@ -152,11 +152,23 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 	// Set default configuration for missing values
 
 	// Go conf
-	if conf.GoExecPath == "" {
-		conf.GoExecPath = "/usr/local/go/bin/go"
+	if conf.GoBinDirectory == "" {
+		conf.GoBinDirectory, err = service.Exec("go env GOBIN")
+		if err != nil {
+			conf.GoBinDirectory = ""
+		}
 	}
 	if conf.GoBinDirectory == "" {
-		conf.GoBinDirectory = filepath.Join(pwd, "go/bin")
+		conf.GoBinDirectory, err = service.Exec("mise exec -- go env GOBIN")
+		if err != nil {
+			conf.GoBinDirectory = ""
+		}
+	}
+	if conf.GoBinDirectory == "" {
+		return Service{}, fmt.Errorf("$GOBIN environment variable is not set on the remote host: please set the $GOBIN env variable on the remote host or add `go_bin_directory: <path>` in `%s` file", r.confFilePath)
+	}
+	if conf.GoExecPath == "" {
+		conf.GoExecPath = filepath.Join(conf.GoBinDirectory, "go")
 	}
 
 	// Systemd conf
@@ -180,7 +192,6 @@ func (r *Runner) MakeService(serviceName string) (Service, error) {
 	if conf.WorkingDirectory == "" {
 		conf.WorkingDirectory = pwd
 	}
-
 	// Save cache
 	r.mu.Lock()
 	r.services[serviceName] = service
